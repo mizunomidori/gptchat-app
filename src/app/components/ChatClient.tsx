@@ -51,9 +51,15 @@ const ChatClient = () => {
     <>
       <div className="flex-grow overflow-auto p-6 space-y-5 w-3/4 max-w-2xl h-[calc(100vh-160px)]">
         <AnimatePresence>
-          {chatLog.slice(1, chatLog.length).map((chat, index) => {
-            return <ChatMessage role={chat.role} content={chat.content} key={index} />
-          })}
+          {chatLog.length === 1 ? (
+            <div className="flex flex-col items-center justify-center gap-3">
+              <p>何でも聞いてええんやで</p>
+            </div>
+          ) : (
+            chatLog.slice(1, chatLog.length).map((chat, index) => {
+              return <ChatMessage role={chat.role} content={chat.content} key={index} />
+            })
+          )}
         </AnimatePresence>
         {isSubmitting && (
           <div className="flex self-start px-8 py-2">

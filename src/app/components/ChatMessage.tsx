@@ -36,13 +36,12 @@ const ChatMessage = (message: MessageType) => {
       exit={{ opacity: 0, translateY: 0 }}
     >
       <div className={`flex gap-5 w-full mt-2 ${message.role === 'assistant'
-          ? 'flex-row'
-          : 'flex-row-reverse'
+        ? 'flex-row'
+        : 'flex-row-reverse'
         }`}>
-        <div className={`flex p-2 max-w-xl w-auto mt-2 flex-col break-all bg-slate-300 dark:bg-slate-900 ${
-            message.role === 'assistant'
-            ? 'rounded-bl-xl rounded-e-xl'
-            : 'rounded-s-xl rounded-tr-xl'
+        <div className={`flex p-2 max-w-xl w-auto mt-2 flex-col break-all bg-slate-300 dark:bg-slate-900 ${message.role === 'assistant'
+          ? 'rounded-bl-xl rounded-e-xl'
+          : 'rounded-s-xl rounded-tr-xl'
           }`}>
           {message.role === 'assistant' && (
             <div className="flex self-end italic opacity-40 text-xs font-bold">
@@ -55,8 +54,8 @@ const ChatMessage = (message: MessageType) => {
             </div>
           )}
           {message.role === 'assistant'
-          ? chatMessage || ''
-          : message.content || ''}
+            ? chatMessage || ''
+            : message.content || ''}
         </div>
       </div>
     </motion.div>
