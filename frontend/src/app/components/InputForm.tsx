@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useRecoilState, useResetRecoilState } from "recoil";
 import { chatLogState } from "../states/chatLogState";
 import { MessageType } from "../types/custom";
@@ -10,25 +10,29 @@ type InputFormProps = {
 };
 
 const InputForm = ({ onSubmit }: InputFormProps) => {
-  const [input, setInput] = useState<string>('');
   const [chatLog, setChatLog] = useRecoilState(chatLogState);
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const input = inputRef.current?.value;
+
     if (input) {
       onSubmit({
         role: 'user',
         content: input,
       });
-      setInput("");
+      inputRef.current.value = '';
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="p-3 flex justify-between items-center w-3/4">
-      <textarea
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
+      <input
+        type="text"
+        ref={inputRef}
         className="w-full p-2 mr-2 rounded focus:outline-none text-gray-800 bg-slate-300"
         placeholder="input message..."
       />
