@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { chatLogState } from "../states/chatLogState";
 import { MessageType } from "../types/custom";
+import { InternetIcon, UserIcon } from "./ui/Icon";
 
 const ChatMessage = (message: MessageType) => {
   const [chatMessage, setChatMessage] = useState('');
@@ -39,17 +40,27 @@ const ChatMessage = (message: MessageType) => {
         ? 'flex-row'
         : 'flex-row-reverse'
         }`}>
-        <div className={`flex p-2 max-w-xl w-auto mt-2 flex-col break-all bg-slate-300 dark:bg-slate-900 ${message.role === 'assistant'
+        {message.role === 'assistant' && (
+          <div className="flex self-start">
+            <InternetIcon />
+          </div>
+        )}
+        {message.role === 'user' && (
+          <div className="flex self-end">
+            <UserIcon />
+          </div>
+        )}
+        <div className={`flex p-2 max-w-xl w-auto mt-2 flex-col break-all bg-slate-300 dark:bg-slate-800 ${message.role === 'assistant'
           ? 'rounded-bl-xl rounded-e-xl'
           : 'rounded-s-xl rounded-tr-xl'
           }`}>
           {message.role === 'assistant' && (
-            <div className="flex self-end italic opacity-40 text-xs font-bold">
+            <div className="flex self-end italic opacity-60 text-xs font-bold">
               Azure
             </div>
           )}
           {message.role === 'user' && (
-            <div className="flex self-start italic opacity-40 text-xs font-bold">
+            <div className="flex self-start italic opacity-60 text-xs font-bold">
               YOU
             </div>
           )}
