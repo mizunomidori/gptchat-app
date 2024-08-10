@@ -19,6 +19,41 @@ const ChatClient = () => {
       setIsSubmitting(true);
       setChatLog((prev) => [...prev, message]);
 
+      const baseUrl = 'http://localhost:8000'
+      const response = await fetch(`${baseUrl}/chat`, {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: [...chatLog, message].map((d) => ({
+            role: d.role,
+            content: d.content,
+          })),
+        }),
+      });
+
+      const data = await response.json();
+      if (response.status !== 200) {
+        throw (
+          data.error ||
+          new Error(`Request failed with status ${response.status}`)
+        );
+      }
+      setChatLog((prev) => [...prev, data.result as MessageType]);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+
+  const handleSubmit_native = async (message: MessageType) => {
+    try {
+      setIsSubmitting(true);
+      setChatLog((prev) => [...prev, message]);
+
       const response = await fetch('/api/messages', {
         method: 'POST',
         headers: {
