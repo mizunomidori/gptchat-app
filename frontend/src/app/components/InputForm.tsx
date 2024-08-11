@@ -29,7 +29,7 @@ const InputForm = ({ onSubmit }: InputFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-3 flex justify-between items-center w-3/4">
+    <form onSubmit={handleSubmit} className="p-2 flex justify-between items-center w-full">
       <input
         type="text"
         ref={inputRef}

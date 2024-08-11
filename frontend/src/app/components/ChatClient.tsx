@@ -83,8 +83,8 @@ const ChatClient = () => {
   };
 
   return (
-    <>
-      <div className="flex-grow overflow-auto p-6 space-y-5 w-3/4 max-w-2xl h-[calc(100vh-160px)]">
+    <div className="w-full max-w-4xl h-screen md:rounded-lg md:shadow-md p-4 md:p-10">
+      <div className="flex-grow overflow-auto p-2 space-y-5 w-full h-[calc(100vh-200px)]">
         <AnimatePresence>
           {chatLog.length === 1 ? (
             <div className="flex flex-col items-center justify-center gap-3">
@@ -104,7 +104,7 @@ const ChatClient = () => {
       </div>
 
       <InputForm onSubmit={handleSubmit} />
-    </>
+    </div>
   );
 };
 

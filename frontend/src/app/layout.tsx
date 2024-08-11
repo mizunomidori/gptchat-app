@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { ProviderAuth } from "./hooks/use-auth";
 import "./globals.css";
 import "@aws-amplify/ui-react/styles.css";
+import Header from "./components/Header";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,6 +21,7 @@ export default function RootLayout({
     <ProviderAuth>
       <html lang="ja">
         <body className={inter.className}>
+          <Header />
           {children}
         </body>
       </html>
