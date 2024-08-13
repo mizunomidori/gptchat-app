@@ -2,8 +2,8 @@
 
 import React, { useRef, useState } from "react";
 import { useRecoilState, useResetRecoilState } from "recoil";
-import { chatLogState } from "../states/chatLogState";
-import { MessageType } from "../types/custom";
+import { chatLogState } from "@/states/chatLogState";
+import { MessageType } from "@/types/custom";
 
 type InputFormProps = {
   onSubmit: (message: MessageType) => Promise<void>;

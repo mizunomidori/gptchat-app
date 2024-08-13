@@ -1,6 +1,6 @@
 
 import Link from "next/link";
-import { headerTitle } from '../constants/constants';
+import { headerTitle } from "@/constants/constants";
 
 export default function Header() {
   return (

@@ -8,7 +8,7 @@ import {
   signOut,
 } from "aws-amplify/auth";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import authConfig from "../api/auth/auth";
+import authConfig from "@/app/api/auth/auth";
 
 Amplify.configure(authConfig);
 
@@ -28,8 +28,11 @@ const getAuthenticatedUser = async () => {
 };
 
 const handleSignIn = () => {
-  signInWithRedirect();
+  signInWithRedirect({
+    provider: { custom: 'okta-saml' }
+  });
 }
+
 const handleSignOut = async () => {
   await signOut();
 }

@@ -1,20 +1,23 @@
 import { useRecoilState } from "recoil";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { chatLogState } from "../states/chatLogState";
-import { MessageType } from "../types/custom";
+import { chatLogState } from "@/states/chatLogState";
+import { MessageType } from "../../types/custom";
 import { InternetIcon, UserIcon } from "./ui/Icon";
 
 const ChatMessage = (message: MessageType) => {
   const [chatMessage, setChatMessage] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [chatLog, setChatLog] = useRecoilState(chatLogState);
+  const scrollBottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (currentIndex < message.content.length) {
       const timeoutId = setTimeout(() => {
         setChatMessage((prevText) => prevText + message.content[currentIndex]);
         setCurrentIndex((prevIndex) => prevIndex + 1);
+        // 最新メッセージへスクロール
+        scrollBottomRef.current?.scrollIntoView();
       }, 80);
 
       return () => {
@@ -69,6 +72,8 @@ const ChatMessage = (message: MessageType) => {
             : message.content || ''}
         </div>
       </div>
+      {/* 最新ポストにスクロールするために配置 */}
+      <div ref={scrollBottomRef} />
     </motion.div>
   );
 };

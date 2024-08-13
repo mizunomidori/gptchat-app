@@ -5,9 +5,9 @@ import { AnimatePresence } from "framer-motion";
 import ChatMessage from "./ChatMessage";
 import InputForm from "./InputForm";
 import { useState } from "react";
-import { MessageType } from "../types/custom";
+import { MessageType } from "../../types/custom";
 import Loading from "./Loading";
-import { chatLogState } from "../states/chatLogState";
+import { chatLogState } from "@/states/chatLogState";
 
 const ChatClient = () => {
   const [chatLog, setChatLog] = useRecoilState<MessageType[]>(chatLogState);
