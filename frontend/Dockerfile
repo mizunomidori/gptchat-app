@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # https://v2.ja.vuejs.org/v2/cookbook/dockerize-vuejs-app
-FROM node:lts-buster-slim AS build-stage
+FROM node:lts-buster-slim AS dev
 
 ARG LANG C.UTF-8
 ARG TZ Asia/Tokyo
@@ -14,10 +14,15 @@ COPY frontend/package.json frontend/package-lock.json /app/
 
 RUN --mount=type=cache,target=/root/.npm npm install && \
     npm ci
+COPY . ./
 
+CMD [ "npm", "start" ]
+
+
+FROM dev AS build
 RUN npm run build
 
-FROM nginx:latest
+FROM nginx:latest AS prod
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY --from=build-stage /app/dist /usr/share/nginx/html

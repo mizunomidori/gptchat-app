@@ -4,6 +4,7 @@ services:
     build:
       context: ./frontend
       dockerfile: ./frontend/Dockerfile
+      target: dev
     ports:
       - 3000:3000
     volumes:
@@ -24,3 +25,9 @@ services:
 
 volumes:
   node_modules:
+
+# 開発環境
+# docker-compose up
+
+# 本番環境
+# docker build --target prod .
