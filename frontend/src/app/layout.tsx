@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ProviderAuth } from "./hooks/use-auth";
+import { ProviderAuth } from "@/hooks/use-auth";
 import "./globals.css";
 import "@aws-amplify/ui-react/styles.css";
 import Header from "./components/Header";
@@ -20,7 +20,6 @@ export default function RootLayout({
   return (
       <html lang="ja">
         <body className={inter.className}>
-          <Header />
           {children}
         </body>
       </html>

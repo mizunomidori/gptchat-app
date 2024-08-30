@@ -1,3 +1,6 @@
+// https://docs.aws.amazon.com/ja_jp/elasticloadbalancing/latest/application/listener-authenticate-users.html
+// https://zenn.dev/bun913/articles/alb-cognito-auth
+// https://gist.github.com/noid11/674297aa79a89e654d6390e7c3cefc22
 
 import { ResourcesConfig } from "aws-amplify";
 

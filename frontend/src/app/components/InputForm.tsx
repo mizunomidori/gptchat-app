@@ -29,11 +29,14 @@ const InputForm = ({ onSubmit }: InputFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-2 flex justify-between items-center w-full">
+    <form
+      onSubmit={handleSubmit}
+      className="stretch mx-2 flex flex-row gap-3 pt-2 last:mb-2 md:last:mb-6 lg:mx-auto lg:max-w-3xl lg:pt-6"
+    >
       <input
         type="text"
         ref={inputRef}
-        className="w-full p-2 mr-2 rounded focus:outline-none text-gray-800 bg-slate-300"
+        className="m-0 w-full resize-none border-0 bg-transparent p-0 pl-2 pr-7 focus:ring-0 focus-visible:ring-0 focus-visible:outline-0 dark:bg-transparent md:pl-0"
         placeholder="input message..."
       />
       <button
