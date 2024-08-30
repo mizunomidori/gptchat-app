@@ -40,15 +40,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/chat")
+@app.post("/api/chat", response_model=str)
 def post_chat(messages: List[ChatMessage]):
-    response = chat.generate_response(
+    response = chat.generate_response_with_template(
       messages=messages
     )
-    return {"answer": response.choices[0]["message"]["content"].strip()}
+    return {"answer": response.choices[0].message.content.strip()}
 
 
-@app.post("/create_assistant", response_model=AssistantResponse)
+@app.post("/api/create_assistant", response_model=AssistantResponse)
 def create_assistant():
   try:
     # アシスタントに使用するファイルの登録
@@ -75,7 +75,7 @@ def get_assistant(assistant_id: str):
     raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/assistant_chat", response_model=ChatResponse)
+@app.post("/api/assistant_chat", response_model=ChatResponse)
 def post_assistant_chat(request: ChatRequest):
   try:
     # スレッドの作成

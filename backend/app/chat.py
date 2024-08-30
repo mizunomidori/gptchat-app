@@ -1,25 +1,48 @@
 
 import openai
+from openai.types.chat import ChatCompletionMessageParam
+from typing import List
 
 from .config import OPENAI_API_KEY
 
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
 model = "gpt-4o-mini-2024-07-18"
 
-def generate_response(messages):
-  return openai.ChatCompletion.create(
+def generate_response(messages: List[ChatCompletionMessageParam]):
+  response = client.chat.completions.create(
     model=model,
     messages=messages,
     temperature=0.0,
   )
 
+  return response
+
+def generate_response_with_template(messages: List[ChatCompletionMessageParam]):
+  query = messages.pop()
+
+  prompt_template = f"""
+  **指示**:
+
+  1. 以下の文脈に基づき、質問に答えてください。
+  2. 回答は短く、簡潔に答えてください。
+  3. 答えに自信がない場合は、「回答できません。」と答えてください。
+
+  質問: {query.content}
+  """
+
+  messages.push(
+    ChatCompletionMessageParam(
+      role="user",
+      content=prompt_template,
+    )
+  )
+
+  return generate_response(messages)
 
 '''
 Assistants API
 '''
 def create_assistant(instructions: str, description: str, file_ids: str):
-  model = "gpt-4o-mini-2024-07-18"
-
   return client.beta.assistants.create(
     instructions=instructions,
     description=description,
