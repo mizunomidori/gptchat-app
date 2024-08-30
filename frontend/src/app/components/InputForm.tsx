@@ -4,6 +4,7 @@ import React, { useRef, useState } from "react";
 import { useRecoilState, useResetRecoilState } from "recoil";
 import { chatLogState } from "@/states/chatLogState";
 import { MessageType } from "@/types/custom";
+import { SubmitIcon } from "./ui/Icon";
 
 type InputFormProps = {
   onSubmit: (message: MessageType) => Promise<void>;
@@ -36,14 +37,14 @@ const InputForm = ({ onSubmit }: InputFormProps) => {
       <input
         type="text"
         ref={inputRef}
-        className="m-0 w-full resize-none border-0 bg-transparent p-0 pl-2 pr-7 focus:ring-0 focus-visible:ring-0 focus-visible:outline-0 dark:bg-transparent md:pl-0"
+        className="m-0 w-full resize-none border-0 bg-transparent p-1 pl-2 md:pl-2 pr-7 focus:ring-0 focus-visible:ring-0 focus-visible:outline-0 dark:bg-transparent"
         placeholder="input message..."
       />
       <button
         type="submit"
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        className="absolute p-0 rounded-md text-gray-500 bottom-6 right-60 md:bottom-7 md:right-36 hover:bg-gray-100 dark:hover:text-gray-400 dark:hover:bg-gray-900 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent"
       >
-        submit
+        <SubmitIcon />
       </button>
     </form>
   );

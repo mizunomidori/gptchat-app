@@ -91,7 +91,7 @@ const ChatClient = () => {
 
   return (
     <div className="overflow-hidden w-full h-full relative">
-      <div className="w-full md:fixed md:inset-x-0 md:flex md:pl-[260px] md:h-[120px] md:flex-col">
+      <div className="w-full md:fixed md:inset-x-0 md:flex md:pl-[260px] md:h-[80px] md:flex-col">
         <Header />
       </div>
 
@@ -99,7 +99,7 @@ const ChatClient = () => {
         <Sidebar />
       </div>
 
-      <div className="flex flex-1 flex-col md:pl-[260px] md:pt-[120px] h-screen">
+      <div className="flex flex-1 flex-col md:pl-[260px] md:pt-[80px] h-screen">
         <div className="relative h-full w-full transition-width flex flex-col overflow-hidden items-stretch flex-1">
           <AnimatePresence>
             {chatLog.length === 1 ? (
@@ -124,7 +124,8 @@ const ChatClient = () => {
             </div>
           )}
 
-          <div className="absolute bottom-0 left-0 w-full md:border-transparent md:dark:border-transparent bg-white dark:bg-gray-800 md:!bg-transparent">
+          {/* FIXME: Move on scroll */}
+          <div className="absolute z-10 bottom-0 left-0 w-full md:border-transparent md:dark:border-transparent bg-white dark:bg-gray-800 md:!bg-transparent">
             <InputForm onSubmit={handleSubmit_native} />
           </div>
         </div>
