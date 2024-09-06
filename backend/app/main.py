@@ -1,8 +1,9 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 
+from logging import getLogger
 import time
 
 from pydantic import BaseModel
@@ -27,6 +28,8 @@ class ChatResponse(BaseModel):
 class AssistantResponse(BaseModel):
   assistant_id: str
   file_id: str
+
+logger = getLogger("uvicorn.app")
 
 origins = ["http://localhost:3000"]
 
@@ -119,6 +122,11 @@ def post_assistant_chat(request: ChatRequest):
   except Exception as e:
     raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/")
+def get_headers(request: Request):
+  headerList = request.headers
+  logger.info(f"headerList {headerList}")
+  logger.info(f"headerList {headerList.get('host')}")
 
 if __name__ == "__main__":
     uvicorn.run("app", host="0.0.0.0", port=3001, reload=True)
