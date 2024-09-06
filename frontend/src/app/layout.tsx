@@ -3,9 +3,10 @@ import { Inter } from "next/font/google";
 import { ProviderAuth } from "@/hooks/use-auth";
 import "./globals.css";
 import "@aws-amplify/ui-react/styles.css";
-import Header from "./components/Header";
-
 const inter = Inter({ subsets: ["latin"] });
+
+import { headers } from "next/headers";
+import { getHeadersData } from "@/hooks/get-header";
 
 export const metadata: Metadata = {
   title: "RAG AI Chat App",
@@ -17,11 +18,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headerList = headers();
+
+  getHeadersData(headerList);
+
   return (
-      <html lang="ja">
-        <body className={inter.className}>
-          {children}
-        </body>
-      </html>
+    <html lang="ja">
+      <body className={inter.className}>{children}</body>
+    </html>
   );
 }
