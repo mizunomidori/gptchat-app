@@ -12,6 +12,38 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 
 export async function* streamChatCompletion(chatLog: MessageType[]) {
+  const baseUrl = "http://localhost:8000";
+  const response = await fetch(`${baseUrl}/api/chat`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      message: chatLog,
+    }),
+  });
+
+  const reader = response.body?.getReader();
+
+  if (response.status !== 200 || !reader) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
+
+  const decoder = new TextDecoder("utf-8");
+  let done = false;
+  while (!done) {
+    const { done: readDone, value } = await reader.read();
+    if (readDone) {
+      done = readDone;
+      reader.releaseLock();
+    } else {
+      const token = decoder.decode(value, { stream: true });
+      yield token;
+    }
+  }
+}
+
+export async function* streamChatCompletionNative(chatLog: MessageType[]) {
   const url = "https://api.openai.com/v1/chat/completions";
   const model = "gpt-4o-mini-2024-07-18";
   const response = await fetch(url, {
@@ -57,28 +89,23 @@ const ChatClient = () => {
       setIsSubmitting(true);
       setChatLog((prev) => [...prev, message]);
 
-      const baseUrl = 'http://localhost:8000'
-      const response = await fetch(`${baseUrl}/api/chat`, {
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: [...chatLog, message].map((d) => ({
-            role: d.role,
-            content: d.content,
-          })),
-        }),
-      });
+      const generator = streamChatCompletion(
+        [...chatLog, message].map((d) => ({
+          role: d.role,
+          content: d.content,
+        }))
+      );
 
-      const data = await response.json();
-      if (response.status !== 200) {
-        throw (
-          data.error ||
-          new Error(`Request failed with status ${response.status}`)
-        );
+      for await (let token of generator) {
+        console.log(token);
+        setChatLog((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: token,
+          } as MessageType,
+        ]);
       }
-      setChatLog((prev) => [...prev, data.result as MessageType]);
     } catch (error) {
       console.log(error);
     } finally {
@@ -86,12 +113,12 @@ const ChatClient = () => {
     }
   };
 
-  const handleSubmit_native = async (message: MessageType) => {
+  const handleSubmitNative = async (message: MessageType) => {
     try {
       setIsSubmitting(true);
       setChatLog((prev) => [...prev, message]);
 
-      const generator = streamChatCompletion(
+      const generator = streamChatCompletionNative(
         [...chatLog, message].map((d) => ({
           role: d.role,
           content: d.content,
@@ -152,7 +179,7 @@ const ChatClient = () => {
 
           {/* FIXME: Move on scroll */}
           <div className="absolute z-10 bottom-0 left-0 w-full md:border-transparent md:dark:border-transparent bg-white dark:bg-gray-800 md:!bg-transparent">
-            <InputForm onSubmit={handleSubmit_native} />
+            <InputForm onSubmit={handleSubmitNative} />
           </div>
         </div>
       </div>
