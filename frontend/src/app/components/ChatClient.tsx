@@ -5,11 +5,47 @@ import { AnimatePresence } from "framer-motion";
 import ChatMessage from "./ChatMessage";
 import InputForm from "./InputForm";
 import { useState } from "react";
-import { MessageType } from "../../types/custom";
+import type { MessageType } from "../../types/custom";
 import Loading from "./Loading";
 import { chatLogState } from "@/states/chatLogState";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
+
+export async function* streamChatCompletion(chatLog: MessageType[]) {
+  const url = "https://api.openai.com/v1/chat/completions";
+  const model = "gpt-4o-mini-2024-07-18";
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      messages: chatLog,
+      model: model,
+      stream: true,
+    }),
+  });
+
+  const reader = response.body?.getReader();
+
+  if (response.status !== 200 || !reader) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
+
+  const decoder = new TextDecoder("utf-8");
+  let done = false;
+  while (!done) {
+    const { done: readDone, value } = await reader.read();
+    if (readDone) {
+      done = readDone;
+      reader.releaseLock();
+    } else {
+      const token = decoder.decode(value, { stream: true });
+      yield token;
+    }
+  }
+}
 
 const ChatClient = () => {
   const [chatLog, setChatLog] = useRecoilState<MessageType[]>(chatLogState);
@@ -50,38 +86,28 @@ const ChatClient = () => {
     }
   };
 
-
   const handleSubmit_native = async (message: MessageType) => {
     try {
       setIsSubmitting(true);
       setChatLog((prev) => [...prev, message]);
 
-      const url = 'https://api.openai.com/v1/chat/completions';
-      const model = "gpt-4o-mini-2024-07-18";
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          messages: [...chatLog, message].map((d) => ({
-            role: d.role,
-            content: d.content,
-          })),
-          model: model,
-          stream: true,
-        }),
-      });
+      const generator = streamChatCompletion(
+        [...chatLog, message].map((d) => ({
+          role: d.role,
+          content: d.content,
+        }))
+      );
 
-      const data = await response.json();
-      if (response.status !== 200) {
-        throw (
-          data.error ||
-          new Error(`Request failed with status ${response.status}`)
-        );
+      for await (let token of generator) {
+        console.log(token);
+        setChatLog((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: token,
+          } as MessageType,
+        ]);
       }
-      setChatLog((prev) => [...prev, data.result as MessageType]);
     } catch (error) {
       console.log(error);
     } finally {
