@@ -15,7 +15,7 @@ import Sidebar from "./Sidebar";
 
 export async function* streamChatCompletion(chatLog: MessageType[]) {
   const baseUrl = "http://localhost:8000";
-  const response = await fetch(`${baseUrl}/api/chat`, {
+  const response = await fetch(`${baseUrl}/api/stream`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -32,15 +32,12 @@ export async function* streamChatCompletion(chatLog: MessageType[]) {
   }
 
   const decoder = new TextDecoder("utf-8");
-  let done = false;
-  while (!done) {
-    const { done: readDone, value } = await reader.read();
-    if (readDone) {
-      done = readDone;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
       reader.releaseLock();
     } else {
       const token = decoder.decode(value, { stream: true });
-      console.log(token);
       yield token;
     }
   }
@@ -96,23 +93,11 @@ export async function* streamChatCompletionNative(chatLog: MessageType[]) {
     chatLog[chatLog.length - 1].content
   );
 
-  let text = '';
   let offset = 0;
   for await (const chunk of response.stream) {
     const chunkText = chunk.text();
-    text += chunkText;
     yield chunkText;
-
-    // for (let i = offset; i < chunkText.length; i++) {
-    //   yield text.slice(0, i + 1);
-    // }
-    // offset += chunkText.length;
   }
-
-  // for (let i = offset; i < text.length; i++) {
-  //   yield text.slice(0, i + 1);
-  // }
-  // yield text;
 }
 
 const ChatClient = () => {
@@ -141,14 +126,16 @@ const ChatClient = () => {
       ]);
 
       for await (let token of generator) {
-        console.log(token);
-        setChatLog((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: token,
-          } as MessageType,
-        ]);
+        setChatLog((prev: MessageType[]) => {
+          return prev.map((chat, index) =>
+            index === prev.length - 1
+              ? ({
+                  content: chat.content + token,
+                  role: chat.role,
+                } as MessageType)
+              : chat
+          );
+        });
       }
     } catch (error) {
       console.log(error);
