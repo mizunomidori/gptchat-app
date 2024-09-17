@@ -27,7 +27,7 @@ volumes:
   node_modules:
 
 # 開発環境
-# docker-compose up
+# docker compose up
 
 # 本番環境
 # docker build --target prod .
