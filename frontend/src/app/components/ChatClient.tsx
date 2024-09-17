@@ -2,6 +2,8 @@
 
 import { useRecoilState } from "recoil";
 import { AnimatePresence } from "framer-motion";
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
 import ChatMessage from "./ChatMessage";
 import InputForm from "./InputForm";
 import { useState } from "react";
@@ -19,7 +21,7 @@ export async function* streamChatCompletion(chatLog: MessageType[]) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      message: chatLog,
+      message: chatLog[chatLog.length - 1].content,
     }),
   });
 
@@ -38,45 +40,79 @@ export async function* streamChatCompletion(chatLog: MessageType[]) {
       reader.releaseLock();
     } else {
       const token = decoder.decode(value, { stream: true });
+      console.log(token);
       yield token;
     }
   }
 }
 
 export async function* streamChatCompletionNative(chatLog: MessageType[]) {
-  const url = "https://api.openai.com/v1/chat/completions";
-  const model = "gpt-4o-mini-2024-07-18";
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      messages: chatLog,
-      model: model,
-      stream: true,
-    }),
-  });
+  const apiKey = process.env.NEXT_PUBLIC_GEMINI_OPENAI_API_KEY || '';
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-  const reader = response.body?.getReader();
+  const genAI = new GoogleGenerativeAI(apiKey);
 
-  if (response.status !== 200 || !reader) {
-    throw new Error(`Request failed with status ${response.status}`);
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+  // const response = await fetch(url, {
+  //   method: "POST",
+  //   headers: {
+  //     "Content-Type": "application/json",
+  //     // Authorization: `Bearer ${process.env.NEXT_PUBLIC_GEMINI_OPENAI_API_KEY}`,
+  //   },
+  //   body: JSON.stringify({
+  //     contents: [
+  //       {
+  //         parts: [
+  //           {
+  //             text: chatLog[chatLog.length - 1].content,
+  //           },
+  //         ],
+  //       },
+  //     ],
+  //   }),
+  // });
+
+  // const reader = response.body?.getReader();
+
+  // if (response.status !== 200 || !reader) {
+  //   throw new Error(`Request failed with status ${response.status}`);
+  // }
+
+  // const decoder = new TextDecoder("utf-8");
+  // let done = false;
+  // while (!done) {
+  //   const { done: readDone, value } = await reader.read();
+  //   if (readDone) {
+  //     done = readDone;
+  //     reader.releaseLock();
+  //   } else {
+  //     const token = decoder.decode(value, { stream: true });
+  //     yield token;
+  //   }
+  // }
+
+  const response = await model.generateContentStream(
+    chatLog[chatLog.length - 1].content
+  );
+
+  let text = '';
+  let offset = 0;
+  for await (const chunk of response.stream) {
+    const chunkText = chunk.text();
+    text += chunkText;
+    yield chunkText;
+
+    // for (let i = offset; i < chunkText.length; i++) {
+    //   yield text.slice(0, i + 1);
+    // }
+    // offset += chunkText.length;
   }
 
-  const decoder = new TextDecoder("utf-8");
-  let done = false;
-  while (!done) {
-    const { done: readDone, value } = await reader.read();
-    if (readDone) {
-      done = readDone;
-      reader.releaseLock();
-    } else {
-      const token = decoder.decode(value, { stream: true });
-      yield token;
-    }
-  }
+  // for (let i = offset; i < text.length; i++) {
+  //   yield text.slice(0, i + 1);
+  // }
+  // yield text;
 }
 
 const ChatClient = () => {
@@ -95,6 +131,14 @@ const ChatClient = () => {
           content: d.content,
         }))
       );
+
+      setChatLog((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: '',
+        } as MessageType,
+      ]);
 
       for await (let token of generator) {
         console.log(token);
@@ -122,18 +166,28 @@ const ChatClient = () => {
         [...chatLog, message].map((d) => ({
           role: d.role,
           content: d.content,
-        }))
+        } as MessageType))
       );
 
+      setChatLog((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "",
+        } as MessageType,
+      ]);
+
       for await (let token of generator) {
-        console.log(token);
-        setChatLog((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: token,
-          } as MessageType,
-        ]);
+        setChatLog((prev: MessageType[]) => {
+          return prev.map((chat, index) =>
+            index === prev.length - 1
+              ? ({
+                  content: chat.content + token,
+                  role: chat.role,
+                } as MessageType)
+              : chat
+          );
+        });
       }
     } catch (error) {
       console.log(error);
@@ -160,15 +214,19 @@ const ChatClient = () => {
                 <p>何でも聞いてええんやで</p>
               </div>
             ) : (
-              chatLog.slice(1, chatLog.length).map((chat, index) => {
-                return (
-                  <ChatMessage
-                    role={chat.role}
-                    content={chat.content}
-                    key={index}
-                  />
-                );
-              })
+              <div className="overflow-y-scroll">
+                {
+                  chatLog.slice(1, chatLog.length).map((chat, index) => {
+                    return (
+                      <ChatMessage
+                        role={chat.role}
+                        content={chat.content}
+                        key={index}
+                      />
+                    );
+                  })
+                }
+              </div>
             )}
           </AnimatePresence>
           {isSubmitting && (

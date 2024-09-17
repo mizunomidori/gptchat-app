@@ -11,7 +11,7 @@ export default function Home() {
 
   return (
     <ProviderAuth>
-      <main className="flex min-h-screen flex-col items-center justify-between p-2">
+      <main className="flex min-h-screen flex-col items-center justify-between">
         {/* <h1>hello, {username}さん</h1> */}
         <RecoilRoot>
           <ChatClient />

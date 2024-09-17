@@ -11,6 +11,7 @@
   "dependencies": {
     "@aws-amplify/ui-react": "^6.1.12",
     "@aws-sdk/client-cognito-identity-provider": "^3.596.0",
+    "@google/generative-ai": "^0.19.0",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/jws": "^3.2.10",
     "aws-amplify": "^6.3.6",
@@ -24,6 +25,7 @@
     "openai": "^4.49.1",
     "react": "^18",
     "react-dom": "^18",
+    "react-markdown": "^9.0.1",
     "recoil": "^0.7.7",
     "simplebar": "^6.2.7",
     "simplebar-react": "^3.2.6"
