@@ -13,6 +13,8 @@ const ChatMessage = (message: MessageType) => {
   const [chatLog, setChatLog] = useRecoilState(chatLogState);
   const scrollBottomRef = useRef<HTMLDivElement>(null);
 
+  const typingSpeed = 5;
+
   useEffect(() => {
     if (currentIndex < message.content.length) {
       const timeoutId = setTimeout(() => {
@@ -20,7 +22,7 @@ const ChatMessage = (message: MessageType) => {
         setCurrentIndex((prevIndex) => prevIndex + 1);
         // 最新メッセージへスクロール
         scrollBottomRef.current?.scrollIntoView();
-      }, 10);
+      }, typingSpeed);
 
       return () => {
         clearTimeout(timeoutId);
