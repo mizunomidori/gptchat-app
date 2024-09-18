@@ -74,21 +74,24 @@ export async function* streamChatCompletionNative(chatLog: MessageType[]) {
 
   const decoder = new TextDecoder("utf-8");
 
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) {
-      reader.releaseLock();
-      break;
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) {
+        break;
+      }
+      const chunk = decoder.decode(value, { stream: true });
+      console.log(`Chunk received: ${new Date().toISOString()}`);
+      let match;
+      const regex = /"text":\s*"((?:\\.|[^\"])*)"/g;
+      while ((match = regex.exec(chunk)) !== null) {
+        const extractedText = match[1].replace(/\\n/g, "\n");
+        console.log("Extracted text:", extractedText);
+        yield extractedText;
+      }
     }
-    const chunk = decoder.decode(value, { stream: true });
-    console.log(`Chunk received: ${new Date().toISOString()}`);
-    let match;
-    const regex = /"text":\s*"((?:\\.|[^\"])*)"/g;
-    while ((match = regex.exec(chunk)) !== null) {
-      const extractedText = match[1].replace(/\\n/g, "\n");
-      console.log("Extracted text:", extractedText);
-      yield extractedText;
-    }
+  } finally {
+    reader.releaseLock();
   }
 
   // const genAI = new GoogleGenerativeAI(apiKey);
