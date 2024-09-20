@@ -7,28 +7,60 @@ import { chatLogState } from "@/states/chatLogState";
 import { MessageType } from "../../types/custom";
 import { GptIcon, UserIcon } from "./ui/Icon";
 
-const ChatMessage = (message: MessageType) => {
+const ChatMessage = ({
+  message,
+  onComplete,
+  parentRef,
+}: {
+  message: MessageType,
+  onComplete: any,
+  parentRef: any,
+}) => {
   const [chatMessage, setChatMessage] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [chatLog, setChatLog] = useRecoilState(chatLogState);
   const scrollBottomRef = useRef<HTMLDivElement>(null);
+  const [isAutoScroll, setIsAutoScroll] = useState(true);
 
-  const typingSpeed = 5;
+  const typingSpeed = 5; // milli sec
+
+  useEffect(() => {
+    const currrentWindowRef = parentRef.current;
+    const handleScroll = () => {
+      const scrollTop = parentRef.current?.scrollTop;
+      const scrollHeight = parentRef.current?.scrollHeight;
+      const clientHeight = parentRef.current?.clientHeight;
+      if (scrollTop && scrollHeight && clientHeight) {
+        if ((scrollHeight - scrollTop) - clientHeight <= 1) {
+          setIsAutoScroll(true);
+        } else {
+          setIsAutoScroll(false);
+        }
+      }
+    };
+
+    currrentWindowRef?.addEventListener("scroll", handleScroll);
+    return () => currrentWindowRef?.removeEventListener("scroll", handleScroll);
+  }, [parentRef]);
 
   useEffect(() => {
     if (currentIndex < message.content.length) {
       const timeoutId = setTimeout(() => {
         setChatMessage((prevText) => prevText + message.content[currentIndex]);
         setCurrentIndex((prevIndex) => prevIndex + 1);
-        // 最新メッセージへスクロール
-        scrollBottomRef.current?.scrollIntoView();
+        if (isAutoScroll) {
+          // 最新メッセージへスクロール
+          scrollBottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
       }, typingSpeed);
 
       return () => {
         clearTimeout(timeoutId);
       };
+    } else {
+      onComplete();
     }
-  }, [message.content, currentIndex]);
+  }, [message.content, currentIndex, onComplete, isAutoScroll]);
 
   return (
     <motion.div

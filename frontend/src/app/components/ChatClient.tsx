@@ -2,117 +2,27 @@
 
 import { useRecoilState } from "recoil";
 import { AnimatePresence } from "framer-motion";
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { useRef, useState } from "react";
 
 import ChatMessage from "./ChatMessage";
 import InputForm from "./InputForm";
-import { useState } from "react";
-import type { MessageType } from "../../types/custom";
 import Loading from "./Loading";
-import { chatLogState } from "@/states/chatLogState";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 
-export async function* streamChatCompletion(chatLog: MessageType[]) {
-  const baseUrl = "http://localhost:8000";
-  const response = await fetch(`${baseUrl}/api/stream`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      message: chatLog[chatLog.length - 1].content,
-    }),
-  });
-
-  const reader = response.body?.getReader();
-
-  if (response.status !== 200 || !reader) {
-    throw new Error(`Request failed with status ${response.status}`);
-  }
-
-  const decoder = new TextDecoder("utf-8");
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) {
-      reader.releaseLock();
-    } else {
-      const token = decoder.decode(value, { stream: true });
-      yield token;
-    }
-  }
-}
-
-export async function* streamChatCompletionNative(chatLog: MessageType[]) {
-  const apiKey = process.env.NEXT_PUBLIC_GEMINI_OPENAI_API_KEY || '';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent?key=${apiKey}`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      // Authorization: `Bearer ${process.env.NEXT_PUBLIC_GEMINI_OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            {
-              text: chatLog[chatLog.length - 1].content,
-            },
-          ],
-        },
-      ],
-    }),
-  });
-
-  const reader = response.body?.getReader();
-
-  if (response.status !== 200 || !reader) {
-    throw new Error(`Request failed with status ${response.status}`);
-  }
-
-  const decoder = new TextDecoder("utf-8");
-
-  try {
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) {
-        break;
-      }
-      const chunk = decoder.decode(value, { stream: true });
-      console.log(`Chunk received: ${new Date().toISOString()}`);
-      let match;
-      const regex = /"text":\s*"((?:\\.|[^\"])*)"/g;
-      while ((match = regex.exec(chunk)) !== null) {
-        const extractedText = match[1].replace(/\\n/g, "\n");
-        console.log("Extracted text:", extractedText);
-        yield extractedText;
-      }
-    }
-  } finally {
-    reader.releaseLock();
-  }
-
-  // const genAI = new GoogleGenerativeAI(apiKey);
-
-  // const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-  // const response = await model.generateContentStream(
-  //   chatLog[chatLog.length - 1].content
-  // );
-
-  // let offset = 0;
-  // for await (const chunk of response.stream) {
-  //   const chunkText = chunk.text();
-  //   yield chunkText;
-  // }
-}
+import type { MessageType } from "../../types/custom";
+import { chatLogState } from "@/states/chatLogState";
+import { streamChatCompletion, streamChatCompletionNative } from "@/app/api/gemini";
 
 const ChatClient = () => {
   const [chatLog, setChatLog] = useRecoilState<MessageType[]>(chatLogState);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const isTypingRef = useRef(false);
+  const chatMessageRef = useRef<HTMLDivElement>(null);
+
+  const controllerRef = useRef<AbortController | null>(null);
 
   const handleSubmit = async (message: MessageType) => {
     try {
@@ -154,15 +64,22 @@ const ChatClient = () => {
   };
 
   const handleSubmitNative = async (message: MessageType) => {
+    controllerRef.current = new AbortController();
+    const signal = controllerRef.current.signal;
+
     try {
       setIsSubmitting(true);
       setChatLog((prev) => [...prev, message]);
 
       const generator = streamChatCompletionNative(
-        [...chatLog, message].map((d) => ({
-          role: d.role,
-          content: d.content,
-        } as MessageType))
+        [...chatLog, message].map(
+          (d) =>
+            ({
+              role: d.role,
+              content: d.content,
+            } as MessageType)
+        ),
+        signal,
       );
 
       setChatLog((prev) => [
@@ -173,7 +90,13 @@ const ChatClient = () => {
         } as MessageType,
       ]);
 
+      setIsTyping(true);
+      isTypingRef.current = true;
+
       for await (let token of generator) {
+        if (!isTypingRef.current) {
+          break;
+        }
         setChatLog((prev: MessageType[]) => {
           return prev.map((chat, index) =>
             index === prev.length - 1
@@ -185,12 +108,29 @@ const ChatClient = () => {
           );
         });
       }
+
     } catch (error) {
       console.log(error);
     } finally {
       setIsSubmitting(false);
+      controllerRef.current?.abort();
     }
   };
+
+  const abortFetching = () => {
+    setIsSubmitting(false);
+    setIsTyping(false);
+    isTypingRef.current = false;
+    controllerRef.current?.abort();
+  };
+
+  const handleComplete = () => {
+    if (!isSubmitting) {
+      console.log("complete!");
+      setIsTyping(false);
+      isTypingRef.current = false;
+    }
+  }
 
   return (
     <div className="overflow-hidden w-full h-full relative">
@@ -210,18 +150,17 @@ const ChatClient = () => {
                 <p>何でも聞いてええんやで</p>
               </div>
             ) : (
-              <div className="overflow-y-scroll">
-                {
-                  chatLog.slice(1, chatLog.length).map((chat, index) => {
-                    return (
-                      <ChatMessage
-                        role={chat.role}
-                        content={chat.content}
-                        key={index}
-                      />
-                    );
-                  })
-                }
+              <div className="overflow-y-auto" ref={chatMessageRef}>
+                {chatLog.slice(1, chatLog.length).map((chat, index) => {
+                  return (
+                    <ChatMessage
+                      message={chat}
+                      onComplete={handleComplete}
+                      parentRef={chatMessageRef}
+                      key={index}
+                    />
+                  );
+                })}
               </div>
             )}
           </AnimatePresence>
@@ -231,7 +170,17 @@ const ChatClient = () => {
             </div>
           )}
 
-          {/* FIXME: Move on scroll */}
+          {(isSubmitting || isTyping) && (
+            <div className="absolute z-10 bottom-20">
+              <button
+                onClick={abortFetching}
+                className="rounded-xl bg-red-400 text-white"
+              >
+                Stop Response
+              </button>
+            </div>
+          )}
+
           <div className="absolute z-10 bottom-0 left-0 w-full md:border-transparent md:dark:border-transparent bg-white dark:bg-gray-800 md:!bg-transparent">
             <InputForm onSubmit={handleSubmitNative} />
           </div>
