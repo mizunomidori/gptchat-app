@@ -132,6 +132,11 @@ const ChatClient = () => {
     }
   }
 
+  const removeChatHistory = () => {
+    console.log('hey');
+    setChatLog([]);
+  }
+
   return (
     <div className="overflow-hidden w-full h-full relative">
       <div className="w-full md:fixed md:inset-x-0 md:flex md:pl-[260px] md:h-[80px] md:flex-col">
@@ -139,7 +144,7 @@ const ChatClient = () => {
       </div>
 
       <div className="md:fixed md:inset-y-0 md:flex md:w-[260px] md:flex-col">
-        <Sidebar />
+        <Sidebar chatLog={chatLog} removeChatHistory={removeChatHistory} />
       </div>
 
       <div className="flex flex-1 flex-col md:pl-[260px] md:pt-[80px] h-screen">

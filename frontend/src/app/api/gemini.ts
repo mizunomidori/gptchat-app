@@ -3,6 +3,15 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { MessageType } from '@/types/custom';
 
+const prompting = (query: string) => {
+  return `**指示**:
+1. 以下の文脈に基づき、質問に答えてください。
+2. 回答は短く、簡潔に答えてください。
+3. 答えに自信がない場合は、「回答できません。」と答えてください。
+
+質問: ${query}`;
+};
+
 export async function* streamChatCompletion(chatLog: MessageType[]) {
   const baseUrl = "http://localhost:8000";
   const response = await fetch(`${baseUrl}/api/stream`, {
@@ -37,6 +46,8 @@ export async function* streamChatCompletionNative(chatLog: MessageType[], signal
   const apiKey = process.env.NEXT_PUBLIC_GEMINI_OPENAI_API_KEY || "";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent?key=${apiKey}`;
 
+  const query = prompting(chatLog[chatLog.length - 1].content);
+
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -48,7 +59,7 @@ export async function* streamChatCompletionNative(chatLog: MessageType[], signal
         {
           parts: [
             {
-              text: chatLog[chatLog.length - 1].content,
+              text: query,
             },
           ],
         },

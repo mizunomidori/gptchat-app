@@ -96,7 +96,7 @@ const ChatMessage = ({
                     <div className="flex flex-grow flex-col gap-3">
                       <div className="min-h-[20px] flex flex-col items-start gap-4 whitespace-pre-wrap">
                         {message.role === "assistant"
-                          ? <RectMarkdown>{chatMessage}</RectMarkdown> || ""
+                          ? <RectMarkdown>{chatMessage}</RectMarkdown>
                           : message.content || ""}
                       </div>
                     </div>
