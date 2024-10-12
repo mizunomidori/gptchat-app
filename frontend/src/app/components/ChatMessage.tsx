@@ -25,11 +25,20 @@ const ChatMessage = ({
 }) => {
   const [chatMessage, setChatMessage] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [chatLog, setChatLog] = useRecoilState(chatLogState);
   const scrollBottomRef = useRef<HTMLDivElement>(null);
   const [isAutoScroll, setIsAutoScroll] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   const typingSpeed = 5; // milli sec
+
+  const copyOnClipboard = async (message: string) => {
+    try {
+      setCopied(true);
+      await navigator.clipboard.writeText(message);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     const currrentWindowRef = parentRef.current;
@@ -68,6 +77,16 @@ const ChatMessage = ({
       onComplete();
     }
   }, [message.content, currentIndex, onComplete, isAutoScroll]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (copied) {
+        setCopied(false);
+      }
+    }, 2000);
+
+    return () => clearTimeout(timeout);
+  }, [copied]);
 
   return (
     <motion.div
@@ -113,7 +132,10 @@ const ChatMessage = ({
                   <div>
                     {message.role === "assistant" ? (
                       <div className="flex flex-row gap-5 md:invisible md:group-hover:visible">
-                        <button className="h-[20px] w-[20px] dark:text-white">
+                        <button
+                          className="h-[20px] w-[20px] dark:text-white"
+                          onClick={() => copyOnClipboard(message.content)}
+                        >
                           <CopyIcon />
                         </button>
                         <button className="h-[20px] w-[20px] dark:text-white">
@@ -125,7 +147,10 @@ const ChatMessage = ({
                       </div>
                     ) : (
                       <div className="flex flex-row gap-5 md:invisible md:group-hover:visible">
-                        <button className="h-[20px] w-[20px] dark:text-white">
+                        <button
+                          className="h-[20px] w-[20px] dark:text-white"
+                          onClick={() => copyOnClipboard(message.content)}
+                        >
                           <CopyIcon />
                         </button>
                         <button className="h-[20px] w-[20px] dark:text-white">
