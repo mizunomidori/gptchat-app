@@ -4,7 +4,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { MessageType } from '@/types/custom';
 
 const prompting = (query: string) => {
-  return `**指示**:
+  return `## 指示:
 1. 以下の文脈に基づき、質問に答えてください。
 2. 回答は短く、簡潔に答えてください。
 3. 答えに自信がない場合は、「回答できません。」と答えてください。

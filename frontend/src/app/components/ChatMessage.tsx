@@ -5,7 +5,14 @@ import RectMarkdown from "react-markdown";
 
 import { chatLogState } from "@/states/chatLogState";
 import { MessageType } from "../../types/custom";
-import { GptIcon, UserIcon } from "./ui/Icon";
+import {
+  CopyIcon,
+  GptIcon,
+  ThumbsDownIcon,
+  ThumbsUpIcon,
+  UserIcon,
+  EditIcon,
+} from "./ui/Icon";
 
 const ChatMessage = ({
   message,
@@ -81,11 +88,11 @@ const ChatMessage = ({
               <div
                 className={`w-full border-b border-black/10 dark:border-gray-900/50 text-gray-800 dark:text-gray-100 group ${
                   message.role === "assistant"
-                    ? "bg-[#ececed] dark:bg-[#444654]"
-                    : "dark:bg-gray-800"
+                    ? "bg-[#ececed] dark:bg-[#444654] bg-opacity-40 dark:bg-opacity-40"
+                    : "bg-gray-300 dark:bg-gray-800 bg-opacity-40 dark:bg-opacity-40"
                 }`}
               >
-                <div className="text-base gap-4 md:gap-6 m-auto md:max-w-2xl lg:max-w-2xl xl:max-w-3xl p-4 mb-10 md:py-6 flex lg:px-0">
+                <div className="text-base gap-4 md:gap-6 m-auto md:max-w-xl lg:max-w-xl xl:max-w-2xl p-4 mb-10 md:py-6 flex lg:px-0">
                   <div className="w-[30px] flex flex-col relative items-end">
                     <div className="relative h-[30px] w-[30px] p-1 rounded-sm text-white flex items-center justify-center bg-[#10a37f]">
                       {message.role === "assistant" && <GptIcon />}
@@ -95,11 +102,38 @@ const ChatMessage = ({
                   <div className="relative flex w-[calc(100%-50px)] flex-col gap-1 md:gap-3 lg:w-[calc(100%-115px)]">
                     <div className="flex flex-grow flex-col gap-3">
                       <div className="min-h-[20px] flex flex-col items-start gap-4 whitespace-pre-wrap">
-                        {message.role === "assistant"
-                          ? <RectMarkdown>{chatMessage}</RectMarkdown>
-                          : message.content || ""}
+                        {message.role === "assistant" ? (
+                          <RectMarkdown>{chatMessage}</RectMarkdown>
+                        ) : (
+                          message.content || ""
+                        )}
                       </div>
                     </div>
+                  </div>
+                  <div>
+                    {message.role === "assistant" ? (
+                      <div className="flex flex-row gap-5 md:invisible md:group-hover:visible">
+                        <button className="h-[20px] w-[20px] dark:text-white">
+                          <CopyIcon />
+                        </button>
+                        <button className="h-[20px] w-[20px] dark:text-white">
+                          <ThumbsUpIcon />
+                        </button>
+                        <button className="h-[20px] w-[20px] dark:text-white">
+                          <ThumbsDownIcon />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-row gap-5 md:invisible md:group-hover:visible">
+                        <button className="h-[20px] w-[20px] dark:text-white">
+                          <CopyIcon />
+                        </button>
+                        <button className="h-[20px] w-[20px] dark:text-white">
+                          <EditIcon />
+                        </button>
+                        <div className="h-[20px] w-[20px]"></div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
