@@ -28,13 +28,13 @@ const Sidebar = ({
         <div className="flex py-3 px-3 items-center dark:text-gray-100 text-sm">
           <h2>Chat history</h2>
         </div>
-        <div className="overflow-y-auto flex-col gap-3">
+        <div className="overflow-y-auto flex flex-col gap-2">
           <AnimatePresence>
             {chatLog.slice(1, chatLog.length).map((chat, index) => {
               if (chat.role === "user") {
                 return (
                   <div
-                    className="flex flex-row gap-2 items-center w-full border border-slate-800 dark:border-slate-200 rounded-md p-1"
+                    className="flex flex-row gap-2 items-center w-full bg-gray-300 dark:bg-gray-800 bg-opacity-80 dark:bg-opacity-80 rounded-md p-1"
                     key={index}
                   >
                     <div className="dark:text-white h-[20px] w-[20px]">

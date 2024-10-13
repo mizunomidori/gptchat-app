@@ -1,15 +1,14 @@
-import { useRecoilState } from "recoil";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import RectMarkdown from "react-markdown";
+import Markdown from "react-markdown";
+// import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 
-import { chatLogState } from "@/states/chatLogState";
 import { MessageType } from "../../types/custom";
 import {
   CopyIcon,
   GptIcon,
-  ThumbsDownIcon,
-  ThumbsUpIcon,
+  ThumbDownIcon,
+  ThumbUpIcon,
   UserIcon,
   EditIcon,
 } from "./ui/Icon";
@@ -28,6 +27,8 @@ const ChatMessage = ({
   const scrollBottomRef = useRef<HTMLDivElement>(null);
   const [isAutoScroll, setIsAutoScroll] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
+  const [isThumbsUp, setIsThumbsUp] = useState(false);
+  const [isThumbsDown, setIsThumbsDown] = useState(false);
 
   const typingSpeed = 5; // milli sec
 
@@ -80,7 +81,7 @@ const ChatMessage = ({
       return () => {
         clearTimeout(timeoutId);
       };
-    } else {
+    } else if (currentIndex === message.content.length) {
       onComplete();
     }
   }, [message.content, currentIndex, onComplete, isAutoScroll]);
@@ -119,7 +120,7 @@ const ChatMessage = ({
                     <div className="flex flex-grow flex-col gap-3">
                       <div className="min-h-[20px] flex flex-col items-start gap-4 whitespace-pre-wrap">
                         {message.role === "assistant" ? (
-                          <RectMarkdown>{chatMessage}</RectMarkdown>
+                          <Markdown>{chatMessage}</Markdown>
                         ) : (
                           message.content || ""
                         )}
@@ -143,11 +144,17 @@ const ChatMessage = ({
                         >
                           <CopyIcon />
                         </button>
-                        <button className="h-[20px] w-[20px] dark:text-white">
-                          <ThumbsUpIcon />
+                        <button
+                          className="h-[20px] w-[20px] dark:text-white"
+                          onClick={() => setIsThumbsUp(!isThumbsUp)}
+                        >
+                          <ThumbUpIcon />
                         </button>
-                        <button className="h-[20px] w-[20px] dark:text-white">
-                          <ThumbsDownIcon />
+                        <button
+                          className="h-[20px] w-[20px] dark:text-white"
+                          onClick={() => setIsThumbsDown(!isThumbsDown)}
+                        >
+                          <ThumbDownIcon />
                         </button>
                       </div>
                     ) : (

@@ -175,7 +175,7 @@ export const ChatBubbleLeftIcon = () => {
   );
 };
 
-export const ThumbsDownIcon = () => {
+export const ThumbDownIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -193,7 +193,7 @@ export const ThumbsDownIcon = () => {
   );
 };
 
-export const ThumbsUpIcon = () => {
+export const ThumbUpIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

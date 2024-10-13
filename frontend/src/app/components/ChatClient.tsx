@@ -126,7 +126,6 @@ const ChatClient = () => {
 
   const handleComplete = () => {
     if (!isSubmitting) {
-      console.log("complete!");
       setIsTyping(false);
       isTypingRef.current = false;
     }
