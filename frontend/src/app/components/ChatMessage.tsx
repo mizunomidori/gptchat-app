@@ -27,14 +27,21 @@ const ChatMessage = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollBottomRef = useRef<HTMLDivElement>(null);
   const [isAutoScroll, setIsAutoScroll] = useState(true);
-  const [copied, setCopied] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   const typingSpeed = 5; // milli sec
 
   const copyOnClipboard = async (message: string) => {
     try {
-      setCopied(true);
       await navigator.clipboard.writeText(message);
+
+      setIsCopied(true);
+
+      const timeout = setTimeout(() => {
+        setIsCopied(false);
+      }, 1000);
+
+      return () => clearTimeout(timeout);
     } catch (e) {
       console.error(e);
     }
@@ -77,16 +84,6 @@ const ChatMessage = ({
       onComplete();
     }
   }, [message.content, currentIndex, onComplete, isAutoScroll]);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (copied) {
-        setCopied(false);
-      }
-    }, 2000);
-
-    return () => clearTimeout(timeout);
-  }, [copied]);
 
   return (
     <motion.div
@@ -132,6 +129,14 @@ const ChatMessage = ({
                   <div>
                     {message.role === "assistant" ? (
                       <div className="flex flex-row gap-5 md:invisible md:group-hover:visible">
+                        <div
+                          className="z-10 absolute top-[-0px] right-[260px] duration-200"
+                          style={{ opacity: isCopied ? 1 : 0 }}
+                        >
+                          <span className="absolute -top-4 bg-slate-600 rounded px-2 py-1 -translate-x-1/2 before:content-[''] before:absolute before:top-full before:left-1/2 before:-translate-x-1/2 before:border-4 before:border-transparent before:border-t-slate-600">
+                            Copied!
+                          </span>
+                        </div>
                         <button
                           className="h-[20px] w-[20px] dark:text-white"
                           onClick={() => copyOnClipboard(message.content)}
@@ -147,6 +152,14 @@ const ChatMessage = ({
                       </div>
                     ) : (
                       <div className="flex flex-row gap-5 md:invisible md:group-hover:visible">
+                        <div
+                          className="z-10 absolute top-[-0px] right-[260px] duration-200"
+                          style={{ opacity: isCopied ? 1 : 0 }}
+                        >
+                          <span className="absolute -top-4 bg-slate-600 rounded px-2 py-1 -translate-x-1/2 before:content-[''] before:absolute before:top-full before:left-1/2 before:-translate-x-1/2 before:border-4 before:border-transparent before:border-t-slate-600">
+                            Copied!
+                          </span>
+                        </div>
                         <button
                           className="h-[20px] w-[20px] dark:text-white"
                           onClick={() => copyOnClipboard(message.content)}

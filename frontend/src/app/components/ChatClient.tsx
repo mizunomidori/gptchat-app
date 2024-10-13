@@ -176,10 +176,10 @@ const ChatClient = () => {
           )}
 
           {(isSubmitting || isTyping) && (
-            <div className="absolute z-10 bottom-20">
+            <div className="absolute z-10 bottom-20 left-1/2">
               <button
                 onClick={abortFetching}
-                className="rounded-xl bg-red-400 text-white"
+                className="rounded-xl bg-red-400 text-white py-1 px-4"
               >
                 Stop Response
               </button>
