@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # https://v2.ja.vuejs.org/v2/cookbook/dockerize-vuejs-app
-FROM python:3.12.5-slim-buster AS base
+FROM python:3.12-slim AS base
 
 ARG LANG C.UTF-8
 ARG TZ Asia/Tokyo
@@ -12,15 +12,16 @@ RUN apt -y update && \
     rm -rf /var/lib/apt/lists/*
 
 RUN curl -sSL https://install.python-poetry.org | python3 -
+ENV PATH="/root/.local/bin:$PATH"
 
 WORKDIR /app
 
-COPY backend/pyproject.toml* backend/poetry.lock* /app/
+COPY pyproject.toml* poetry.lock* /app/
 
 RUN poetry config virtualenvs.create false && \
-    poetry install --no-dev
+    poetry install --no-root
 
-COPY backend/ /app/
+COPY . /app/
 
 EXPOSE 8000
 

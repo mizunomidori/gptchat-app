@@ -3,7 +3,7 @@ services:
     container_name: 'nextjs'
     build:
       context: ./frontend
-      dockerfile: ./frontend/Dockerfile
+      dockerfile: Dockerfile
       target: dev
     ports:
       - 3000:3000
@@ -14,7 +14,7 @@ services:
     container_name: 'fastapi'
     build:
       context: ./backend
-      dockerfile: ./backend/Dockerfile
+      dockerfile: Dockerfile
 
     ports:
       - 8000:8000

@@ -10,22 +10,28 @@ ARG TZ Asia/Tokyo
 WORKDIR /app
 
 # To copy files to the working directory
-COPY frontend/package.json frontend/package-lock.json /app/
+COPY package.json package-lock.json /app/
 
 RUN --mount=type=cache,target=/root/.npm npm install && \
     npm ci
-COPY . ./
+COPY . .
 
-CMD [ "npm", "start" ]
+CMD [ "npm", "run", "dev" ]
 
 
-FROM dev AS build
+FROM node:lts-buster-slim AS build
+
+WORKDIR /app
+
+COPY --from=dev /app /app
+
 RUN npm run build
+
 
 FROM nginx:latest AS prod
 
 COPY nginx.conf /etc/nginx/nginx.conf
-COPY --from=build-stage /app/dist /usr/share/nginx/html
+COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 3000
 
