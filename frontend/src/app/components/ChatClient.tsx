@@ -25,6 +25,9 @@ const ChatClient = () => {
   const controllerRef = useRef<AbortController | null>(null);
 
   const handleSubmit = async (message: MessageType) => {
+    controllerRef.current = new AbortController();
+    const signal = controllerRef.current.signal;
+
     try {
       setIsSubmitting(true);
       setChatLog((prev) => [...prev, message]);
@@ -33,18 +36,26 @@ const ChatClient = () => {
         [...chatLog, message].map((d) => ({
           role: d.role,
           content: d.content,
-        }))
+        })),
+        signal,
       );
 
       setChatLog((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: '',
+          content: "",
         } as MessageType,
       ]);
 
+      setIsTyping(true);
+      isTypingRef.current = true;
+
       for await (let token of generator) {
+        if (!isTypingRef.current) {
+          break;
+        }
+
         setChatLog((prev: MessageType[]) => {
           return prev.map((chat, index) =>
             index === prev.length - 1
@@ -60,6 +71,7 @@ const ChatClient = () => {
       console.log(error);
     } finally {
       setIsSubmitting(false);
+      controllerRef.current?.abort();
     }
   };
 
@@ -186,7 +198,7 @@ const ChatClient = () => {
           )}
 
           <div className="absolute z-10 bottom-0 left-0 w-full md:border-transparent md:dark:border-transparent bg-white dark:bg-gray-800 md:!bg-transparent">
-            <InputForm onSubmit={handleSubmitNative} />
+            <InputForm onSubmit={handleSubmit} />
           </div>
         </div>
       </div>

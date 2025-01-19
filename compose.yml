@@ -31,3 +31,6 @@ volumes:
 
 # 本番環境
 # docker build --target prod .
+
+# 削除
+# docker compose down --rmi all --volumes --remove-orphans

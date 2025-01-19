@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import uvicorn
 
@@ -10,10 +11,10 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 from . import chat
-
+from . import gemini
 
 class ChatMessage(BaseModel):
-  content: str
+  message: str
 
 class ChatRequest(BaseModel):
   assistant_id: str
@@ -36,20 +37,32 @@ origins = ["http://localhost:3000"]
 app = FastAPI()
 
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
+  CORSMiddleware,
+  allow_origins=origins,
+  allow_credentials=True,
+  allow_methods=["GET", "POST"],
+  allow_headers=["*"],
 )
 
 @app.post("/api/chat", response_model=str)
 def post_chat(messages: List[ChatMessage]):
-    response = chat.generate_response_with_template(
-      messages=messages
-    )
-    return {"answer": response.choices[0].message.content.strip()}
+  response = chat.generate_response_with_template(
+    messages=messages
+  )
+  return {"answer": response.choices[0].message.content.strip()}
 
+@app.post("/api/chat_gemini", response_model=str)
+async def post_chat_gemini(message: ChatMessage):
+  try:
+    logger.info(f"Received message: {message.message}")
+    gemini_chat = gemini.GeminiChat()
+    return StreamingResponse(
+      content=gemini_chat.chat_gemini(message=message.message),
+      media_type="text/event-stream"
+    )
+  except Exception as e:
+    logger.error(f"Error: {e}")
+    raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/create_assistant", response_model=AssistantResponse)
 def create_assistant():
@@ -129,5 +142,4 @@ def get_headers(request: Request):
   logger.info(f"headerList {headerList.get('host')}")
 
 if __name__ == "__main__":
-    uvicorn.run("app", host="0.0.0.0", port=3001, reload=True)
-
+  uvicorn.run("app", host="0.0.0.0", port=3001, reload=True)

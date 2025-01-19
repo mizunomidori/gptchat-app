@@ -29,9 +29,9 @@ const prompting = (query: string) => {
 質問: ${query}`;
 };
 
-export async function* streamChatCompletion(chatLog: MessageType[]) {
+export async function* streamChatCompletion(chatLog: MessageType[], signal: AbortSignal) {
   const baseUrl = "http://localhost:8000";
-  const response = await fetch(`${baseUrl}/api/stream`, {
+  const response = await fetch(`${baseUrl}/api/chat_gemini`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -39,6 +39,7 @@ export async function* streamChatCompletion(chatLog: MessageType[]) {
     body: JSON.stringify({
       message: chatLog[chatLog.length - 1].content,
     }),
+    signal: signal,
   });
 
   const reader = response.body?.getReader();
